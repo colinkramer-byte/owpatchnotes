@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-PATCH_NOTES_URL="${PATCH_NOTES_URL:-https://overwatch.blizzard.com/en-us/news/patch-notes/live/2026/01}"
+PATCH_NOTES_URL="${PATCH_NOTES_URL:-https://overwatch.blizzard.com/en-us/news/patch-notes/live/}"
 OUTPUT_FILE="${1:-hero_changes_latest_patch.csv}"
 
 readonly HERO_ROSTER=(
@@ -69,7 +69,7 @@ csv_escape() {
 fetch_html() {
   local url=$1
   local output_path=$2
-  curl -fsSL "$url" >"$output_path"
+  curl -A "Mozilla/5.0" -fsSL "$url" >"$output_path"
 }
 
 extract_changes_tsv() {
@@ -88,31 +88,15 @@ extract_changes_tsv() {
       return $text;
     }
 
-    my %month = (
-      January => 1, February => 2, March => 3, April => 4,
-      May => 5, June => 6, July => 7, August => 8,
-      September => 9, October => 10, November => 11, December => 12,
-    );
-
     my $html = $_;
-    my @patches = split /<div class="PatchNotes-patch PatchNotes-live">/i, $html;
-    shift @patches;
-
-    my $latest_key = 0;
     my $latest_patch = q{};
-
-    for my $patch (@patches) {
-      next unless $patch =~ m{<h3 class="PatchNotes-patchTitle">\s*Overwatch Retail Patch Notes - ([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})\s*</h3>}is;
-      my ($month_name, $day, $year) = ($1, $2, $3);
-      next unless exists $month{$month_name};
-      my $key = sprintf("%04d%02d%02d", $year, $month{$month_name}, $day);
-      if ($key > $latest_key) {
-        $latest_key = $key;
-        $latest_patch = $patch;
-      }
+    if ($html =~ m{<div class="PatchNotes-patch PatchNotes-live">(.*?)<div class="PatchNotesTop">}is) {
+      $latest_patch = $1;
+    } elsif ($html =~ m{(<div class="anchor" id="patch-\d{4}-\d{2}-\d{2}"></div>.*?)(?:<div class="PatchNotesTop">|$)}is) {
+      $latest_patch = $1;
     }
 
-    die "Could not find the latest patch section\n" if !$latest_patch;
+    die "Could not find the latest patch section\n" if $latest_patch eq q{};
 
     my @heroes = split /<div class="PatchNotesHeroUpdate">/i, $latest_patch;
     shift @heroes;
