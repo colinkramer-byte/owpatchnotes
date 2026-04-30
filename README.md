@@ -23,3 +23,4 @@ This project is a Bash script that reads the latest live Overwatch patch notes f
 ```bash
 cd "/Users/colinkramer/Documents/Overwatch_patchnotes"
 bash overwatch_patch_notes_to_csv.sh
+sed -n '1,100p' hero_changes_latest_patch.csv
