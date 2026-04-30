@@ -20,7 +20,10 @@ This project is a Bash script that reads the latest live Overwatch patch notes f
 
 ## How to run
 
+Clone the repository, then run:
+
 ```bash
-cd "/Users/colinkramer/Documents/Overwatch_patchnotes"
+git clone https://github.com/colinkramer-byte/owpatchnotes.git
+cd owpatchnotes
 bash overwatch_patch_notes_to_csv.sh
 sed -n 'p' hero_changes_latest_patch.csv
